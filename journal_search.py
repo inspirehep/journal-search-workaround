@@ -9,15 +9,19 @@ import getopt
 
 INSPIRE_API_ENDPOINT = "https://inspirehep.net/api"
 
+
 def _usage():
-    print '''Example:\
+    print(
+        """Example:\
 python journal_search.py Phys Rev
 Possible arguments:
 -n , --name:   short_title, journal_title, title_variants
 -e , --exact:  short_title, journal_title only
 -l , --long:   print all fields
 -a , --all:    print all records (default up to 20)
-'''
+"""
+    )
+
 
 fields_short = [
     "self",
@@ -53,26 +57,20 @@ fields_long = [
     "new_record",
     "related_records",
     "legacy_creation_date",
-    "legacy_version"
+    "legacy_version",
 ]
 
 
 def normalize_name(string):
     """Strip punktuation"""
-    norm_name = re.sub('[., ]+', ' ', string).lower()
+    norm_name = re.sub("[., ]+", " ", string).lower()
     return norm_name
 
 
 def _read_options(options_in):
     """Reads the options and generate search_pattern and flags"""
 
-    flags = {
-        "value": "",
-        "exact": False,
-        "name": False,
-        "long": False,
-        "all": False
-        }
+    flags = {"value": "", "exact": False, "name": False, "long": False, "all": False}
     options = {
         "-e": "exact",
         "--exact": "exact",
@@ -81,7 +79,7 @@ def _read_options(options_in):
         "-l": "long",
         "--long": "long",
         "-a": "all",
-        "--all": "all"
+        "--all": "all",
     }
 
     options_string = options_in[1:]
@@ -89,15 +87,15 @@ def _read_options(options_in):
         short_flags = "nelah"
         long_flags = ["name", "exact", "long", "all", "help"]
         opts, args = getopt.gnu_getopt(options_string, short_flags, long_flags)
-    except getopt.GetoptError, err1:
-        print >> sys.stderr, "Options problem: %s" % err1
+    except getopt.GetoptError as err1:
+        print("Options problem: %s" % err1, file=sys.stderr)
         _usage()
 
     if not args:
         _usage()
         sys.exit(0)
 
-    flags["value"] = ' '.join(args)
+    flags["value"] = " ".join(args)
 
     for option, argument in opts:
         if option in ("-h", "--help"):
@@ -108,7 +106,7 @@ def _read_options(options_in):
         else:
             # This shouldn't happen as gnu_getopt should already handle
             # that case.
-            print "option unrecognized -- %s" % option
+            print("option unrecognized -- %s" % option)
 
     return flags
 
@@ -126,7 +124,7 @@ def perform_inspire_search(query, facets=None, collection="journals"):
     """
     facets = facets or {}
     response = requests.get(
-    "%s/%s" % (INSPIRE_API_ENDPOINT,collection), params={"q": query}, verify=False
+        "%s/%s" % (INSPIRE_API_ENDPOINT, collection), params={"q": query}, verify=False
     )
 
     response.raise_for_status()
@@ -148,37 +146,38 @@ def print_dict(value, format):
     """Print values which are dict in given format"""
     if type(value) != dict:
         return format % value
-        
-    primary_key = 'value'
-    keys = value.keys()
-    text = ''
+
+    primary_key = "value"
+    keys = list(value.keys())
+    text = ""
     if primary_key in keys:
         keys.remove(primary_key)
         text += format % value[primary_key]
     for key in keys:
         if key in format:
-            this_text = '%s' % value[key]
+            this_text = "%s" % value[key]
         else:
-            this_text = '%s : %s' % (key, value[key])
+            this_text = "%s : %s" % (key, value[key])
         text += format % this_text
     return text
+
 
 def print_list(value, format):
     """Print values which are list in given format"""
     if type(value) != list:
         return format % value
-        
-    text = ''
+
+    text = ""
     for item in value:
         if type(item) == dict:
             format = format.rstrip()
             prefix = format.rsplit(" : ", 1)
             if len(prefix) == 2:
                 text += "%s : " % prefix[0]
-                text += print_dict(item, prefix[1]+' ;  ')
+                text += print_dict(item, prefix[1] + " ;  ")
             else:
-                text += print_dict(item, format+' ;  ')
-            text += '\n'
+                text += print_dict(item, format + " ;  ")
+            text += "\n"
         else:
             text += format % item
     return text
@@ -187,11 +186,11 @@ def print_list(value, format):
 def print_journal(metadata, fields):
     """Simple print json of a record"""
     text = ""
-    format = '%25s : %%s\n'
+    format = "%25s : %%s\n"
 
     for field in fields:
         if field == "empty_line":
-            text += '\n'
+            text += "\n"
         elif field in metadata:
             value = metadata[field]
             if type(value) == list:
@@ -209,7 +208,7 @@ def get_journals(flags):
 
     name = flags["value"]
     name_fields = ["journal_title.title", "short_title"]
-    search_pattern = ' OR '.join(['%s:"%s"' % (field, name) for field in name_fields])
+    search_pattern = " OR ".join(['%s:"%s"' % (field, name) for field in name_fields])
     if flags["exact"]:
         pass
     elif flags["name"]:
@@ -222,13 +221,16 @@ def get_journals(flags):
     else:
         fields = fields_short
 
-    print '\n%s\n' % search_pattern
+    print("\n%s\n" % search_pattern)
     for record in perform_inspire_search(search_pattern):
-        if 'metadata' in record:
-            result.append(print_journal(record['metadata'], fields))
+        if "metadata" in record:
+            result.append(print_journal(record["metadata"], fields))
 
     if not result:
-        result.append("No records found for\nhttps://inspirehep.net/api/journals?q=%s\n" % search_pattern)
+        result.append(
+            "No records found for\nhttps://inspirehep.net/api/journals?q=%s\n"
+            % search_pattern
+        )
     return result
 
 
@@ -238,14 +240,15 @@ def main():
     result = get_journals(flags)
 
     if len(result) > 20 and not flags["all"]:
-        print "\n\n%s records -refine your search or use -a" % len(result)
+        print("\n\n%s records -refine your search or use -a" % len(result))
         _usage()
         exit()
 
-    print '\n\n\n'
+    print("\n\n\n")
     for journal in result:
-        print journal
-        print '=================='
+        print(journal)
+        print("==================")
+
 
 if __name__ == "__main__":
-        main()
+    main()
