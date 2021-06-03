@@ -202,7 +202,7 @@ def print_journal(metadata, fields):
     return text
 
 
-def get_journals(flags):
+def get_journals(**flags):
     """Search for journals depending on arguments, return list of ASCII representation"""
     result = []
 
@@ -237,7 +237,7 @@ def get_journals(flags):
 def main():
     """Parse options, search journals, print result"""
     flags = _read_options(sys.argv)
-    result = get_journals(flags)
+    result = get_journals(**flags)
 
     if len(result) > 20 and not flags["all"]:
         print("\n\n%s records -refine your search or use -a" % len(result))
