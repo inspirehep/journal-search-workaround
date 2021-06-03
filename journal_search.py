@@ -124,7 +124,8 @@ def perform_inspire_search(query, facets=None, collection="journals"):
     """
     facets = facets or {}
     response = requests.get(
-        "%s/%s" % (INSPIRE_API_ENDPOINT, collection), params={"q": query}, verify=False
+        "%s/%s" % (INSPIRE_API_ENDPOINT, collection),
+        params={"q": query},
     )
 
     response.raise_for_status()
@@ -134,7 +135,7 @@ def perform_inspire_search(query, facets=None, collection="journals"):
         yield result
 
     while "next" in content.get("links", {}):
-        response = requests.get(content["links"]["next"], verify=False)
+        response = requests.get(content["links"]["next"])
         response.raise_for_status()
         content = response.json()
 

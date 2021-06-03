@@ -19,7 +19,6 @@ def search_form():
         <input type="checkbox" name="exact" id="exact"><label for="exact">short_title, journal_title only</label><br />
         <p>Result options:</p>
         <input type="checkbox" name="long" id="long"><label for="long">print all fields</label><br />
-        <input type="checkbox" name="all" id="all"><label for="all">print all records (default up to 20)</label><br />
     </div>
     <div>
     </form>
@@ -36,7 +35,6 @@ def journals_search():
             exact=request.args.get("exact"),
             name=request.args.get("name"),
             long=request.args.get("long"),
-            all=request.args.get("all"),
         )
         result_str = "</pre><hr /><pre>".join(results)
         out += f"<h2>{len(results)} Results</h2>"
